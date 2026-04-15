@@ -41,42 +41,28 @@ const quotes = [
 const dayIndex = new Date().getDate() % quotes.length;
 document.getElementById('quoteText').textContent = quotes[dayIndex];
 
-// === STORIES RENDERING ===
-const defaultStories = [
-  {
-    title: "The 1% Rule",
-    content: "James was 40kg overweight and couldn’t run 100m. He started walking 10 minutes daily. Just 10. After 1 year, he ran his first 5K. Small steps compound. 1% better every day is 37x better in a year.",
-    author: "Inspired by Atomic Habits"
-  },
-  {
-    title: "Rejected 12 Times",
-    content: "Priya applied to TELUS 12 times over 2 years. Every rejection came with feedback. She used it. On the 13th try, she got hired as Team Lead. Rejection is redirection when you learn from it.",
-    author: "Community Story"
-  },
-  {
-    title: "The Night Shift Promise",
-    content: "Ravi worked night shifts to fund his sister’s education. Sleep-deprived but never hopeless. Today, she’s a doctor and he runs his own logistics firm. Sacrifice today is someone’s future tomorrow.",
-    author: "Submitted by readers"
+// === STORIES FROM API ===
+async function loadStories() {
+  try {
+    const res = await fetch('/api/stories');
+    const stories = await res.json();
+    const container = document.getElementById('stories');
+    container.innerHTML = '';
+
+    stories.forEach(story => {
+      const card = document.createElement('article');
+      card.className = 'story-card';
+      card.innerHTML = `
+        <h3>${story.title}</h3>
+        <p>${story.content}</p>
+        <div class="author">— ${story.author}</div>
+      `;
+      container.appendChild(card);
+    });
+    animateCards();
+  } catch (err) {
+    showToast('Failed to load stories', true);
   }
-];
-
-function loadStories() {
-  const userStories = JSON.parse(localStorage.getItem('userStories') || '[]');
-  const allStories = [...defaultStories,...userStories];
-  const container = document.getElementById('stories');
-  container.innerHTML = '';
-
-  allStories.forEach(story => {
-    const card = document.createElement('article');
-    card.className = 'story-card';
-    card.innerHTML = `
-      <h3>${story.title}</h3>
-      <p>${story.content}</p>
-      <div class="author">— ${story.author}</div>
-    `;
-    container.appendChild(card);
-  });
-  animateCards();
 }
 
 function animateCards() {
@@ -89,39 +75,54 @@ function animateCards() {
   cards.forEach(card => observer.observe(card));
 }
 
-// === SUBMIT STORY FORM ===
-document.getElementById('storyForm').addEventListener('submit', (e) => {
+// === SUBMIT STORY TO API ===
+document.getElementById('storyForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const title = document.getElementById('storyTitle').value.trim();
   const content = document.getElementById('storyContent').value.trim();
   const author = document.getElementById('storyAuthor').value.trim();
 
-  if (title && content && author) {
-    const userStories = JSON.parse(localStorage.getItem('userStories') || '[]');
-    userStories.unshift({ title, content, author });
-    localStorage.setItem('userStories', JSON.stringify(userStories));
-    loadStories();
+  try {
+    const res = await fetch('/api/stories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content, author })
+    });
+
+    if (!res.ok) throw new Error('Failed');
+
     e.target.reset();
     showToast('Story published! You just inspired someone.');
+    loadStories();
     window.scrollTo({ top: 400, behavior: 'smooth' });
+  } catch (err) {
+    showToast('Error publishing story', true);
   }
 });
 
-// === EMAIL CAPTURE ===
-document.getElementById('emailForm').addEventListener('submit', (e) => {
+// === EMAIL SUBSCRIBE TO API ===
+document.getElementById('emailForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('emailInput').value.trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (emailRegex.test(email)) {
-    const emails = JSON.parse(localStorage.getItem('emails') || '[]');
-    if (!emails.includes(email)) {
-      emails.push(email);
-      localStorage.setItem('emails', JSON.stringify(emails));
+  try {
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    if (res.status === 409) {
+      showToast('Already subscribed!', true);
+    } else if (!res.ok) {
+      throw new Error(data.error);
+    } else {
+      e.target.reset();
+      showToast('Subscribed! Check your inbox Monday.');
     }
-    e.target.reset();
-    showToast('Subscribed! Check your inbox Monday.');
-  } else {
+  } catch (err) {
     showToast('Please enter a valid email.', true);
   }
 });
