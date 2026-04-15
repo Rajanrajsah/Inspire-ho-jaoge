@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InspireDaily | Motivational Stories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="logo">InspireDaily</div>
+    <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
+  </header>
+
+  <section class="hero">
+    <h1>One Story Can <span>Change Your Day</span></h1>
+    <p>Real stories of resilience, grit, and comebacks. Updated weekly to keep you moving forward.</p>
+
+    <div class="quote-box">
+      <h4>QUOTE OF THE DAY</h4>
+      <p id="quoteText">Loading...</p>
+    </div>
+  </section>
+
+  <section class="stories" id="stories"></section>
+
+  <section class="form-section">
+    <h2>Share Your Story</h2>
+    <form id="storyForm">
+      <input type="text" id="storyTitle" placeholder="Story Title" required>
+      <textarea id="storyContent" placeholder="Your story... Keep it real, keep it short." required></textarea>
+      <input type="text" id="storyAuthor" placeholder="Your Name or 'Anonymous'" required>
+      <button type="submit">Publish Story</button>
+    </form>
+  </section>
+
+  <section class="newsletter">
+    <h2>Get 1 Story Every Monday</h2>
+    <p>No spam. Just one real story to start your week strong.</p>
+    <form id="emailForm">
+      <input type="email" id="emailInput" placeholder="your@email.com" required>
+      <button type="submit">Subscribe</button>
+    </form>
+  </section>
+
+  <footer>
+    Built with grit. © 2026 InspireDaily. Keep going.
+  </footer>
+
+  <div class="toast" id="toast"></div>
+  <script src="script.js"></script>
+</body>
+</html>
